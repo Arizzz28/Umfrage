@@ -1,0 +1,310 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain Voting</title>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #0c0e14;
+    color: white;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+}
+
+.container {
+    width: 900px;
+    max-width: 100%;
+    background: #151923;
+    padding: 30px;
+    border-radius: 18px;
+    border: 1px solid #292f40;
+}
+
+h1 {
+    margin-top: 0;
+    font-size: 30px;
+}
+
+.subtitle {
+    color: #929bad;
+    margin-bottom: 30px;
+}
+
+.content {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 25px;
+}
+
+.panel {
+    background: #1c2230;
+    padding: 20px;
+    border-radius: 13px;
+}
+
+h3 {
+    margin-top: 0;
+}
+
+input {
+    width: 100%;
+    padding: 13px;
+    background: #10141e;
+    border: 1px solid #343d50;
+    border-radius: 8px;
+    color: white;
+    outline: none;
+    margin-bottom: 10px;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.add {
+    width: 100%;
+    background: #6378ff;
+    color: white;
+}
+
+.add:hover {
+    background: #8190ff;
+}
+
+.option {
+    background: #252c3c;
+    border: 1px solid #343d50;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.option-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.option-name {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.vote {
+    background: #6378ff;
+    color: white;
+}
+
+.vote:disabled {
+    background: #343d50;
+    cursor: not-allowed;
+    color: #9da6b8;
+}
+
+.bar {
+    height: 7px;
+    background: #10141e;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.fill {
+    height: 100%;
+    background: #6378ff;
+    border-radius: 10px;
+    transition: width 0.3s;
+}
+
+.stats {
+    color: #929bad;
+    font-size: 12px;
+}
+
+.delete {
+    background: transparent;
+    color: #ff7474;
+    padding: 5px;
+}
+
+.empty {
+    color: #929bad;
+    text-align: center;
+    padding: 35px 0;
+}
+
+@media(max-width: 650px) {
+    .content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Domain Voting</h1>
+    <p class="subtitle">Welche Domain sollen wir nehmen?</p>
+
+    <div class="content">
+
+        <div class="panel">
+            <h3>Option hinzufügen</h3>
+
+            <input
+                id="optionInput"
+                placeholder="z.B. .de"
+                maxlength="30"
+            >
+
+            <button class="add" onclick="addOption()">
+                + Hinzufügen
+            </button>
+
+            <p class="stats" id="total">
+                0 Optionen
+            </p>
+        </div>
+
+        <div class="panel">
+            <h3>Abstimmung</h3>
+            <div id="options">
+                <div class="empty">
+                    Noch keine Optionen vorhanden.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let options = [
+    { name: ".de", votes: 0 },
+    { name: ".com", votes: 0 },
+    { name: ".net", votes: 0 }
+];
+
+let voted = [];
+
+function addOption() {
+    const input = document.getElementById("optionInput");
+    const name = input.value.trim();
+
+    if (!name) return;
+
+    if (options.some(o => o.name.toLowerCase() === name.toLowerCase())) {
+        alert("Diese Option existiert bereits!");
+        return;
+    }
+
+    options.push({
+        name: name,
+        votes: 0
+    });
+
+    input.value = "";
+    render();
+}
+
+function vote(index) {
+    if (voted.includes(index)) return;
+
+    options[index].votes++;
+    voted.push(index);
+
+    render();
+}
+
+function deleteOption(index) {
+    options.splice(index, 1);
+    voted = [];
+    render();
+}
+
+function render() {
+    const container = document.getElementById("options");
+    const totalVotes = options.reduce((sum, o) => sum + o.votes, 0);
+
+    document.getElementById("total").textContent =
+        options.length + " Optionen · " + totalVotes + " Stimmen";
+
+    if (options.length === 0) {
+        container.innerHTML = '<div class="empty">Noch keine Optionen vorhanden.</div>';
+        return;
+    }
+
+    container.innerHTML = "";
+
+    options.forEach((option, index) => {
+        const percentage = totalVotes
+            ? (option.votes / totalVotes) * 100
+            : 0;
+
+        const div = document.createElement("div");
+        div.className = "option";
+
+        const top = document.createElement("div");
+        top.className = "option-top";
+
+        const name = document.createElement("span");
+        name.className = "option-name";
+        name.textContent = option.name;
+
+        const del = document.createElement("button");
+        del.className = "delete";
+        del.textContent = "✕";
+        del.onclick = () => deleteOption(index);
+
+        top.append(name, del);
+
+        const bar = document.createElement("div");
+        bar.className = "bar";
+
+        const fill = document.createElement("div");
+        fill.className = "fill";
+        fill.style.width = percentage + "%";
+
+        bar.appendChild(fill);
+
+        const stats = document.createElement("div");
+        stats.className = "stats";
+        stats.textContent = option.votes + " Stimmen · " +
+            percentage.toFixed(1) + "%";
+
+        const btn = document.createElement("button");
+        btn.className = "vote";
+        btn.textContent = voted.includes(index)
+            ? "Abgestimmt ✓"
+            : "Abstimmen";
+
+        btn.disabled = voted.includes(index);
+        btn.onclick = () => vote(index);
+
+        div.append(top, bar, stats, btn);
+        container.appendChild(div);
+    });
+}
+
+render();
+</script>
+
+</body>
+</html>
