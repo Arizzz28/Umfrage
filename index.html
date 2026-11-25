@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Domain Voting</title>
+
 <style>
 * {
     box-sizing: border-box;
@@ -110,12 +111,11 @@ button {
 .vote {
     background: #6378ff;
     color: white;
+    margin-top: 10px;
 }
 
-.vote:disabled {
-    background: #343d50;
-    cursor: not-allowed;
-    color: #9da6b8;
+.vote:hover {
+    background: #8190ff;
 }
 
 .bar {
@@ -157,9 +157,11 @@ button {
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
+
     <h1>Domain Voting</h1>
     <p class="subtitle">Welche Domain sollen wir nehmen?</p>
 
@@ -185,6 +187,7 @@ button {
 
         <div class="panel">
             <h3>Abstimmung</h3>
+
             <div id="options">
                 <div class="empty">
                     Noch keine Optionen vorhanden.
@@ -196,15 +199,15 @@ button {
 </div>
 
 <script>
+
 let options = [
     { name: ".de", votes: 0 },
     { name: ".com", votes: 0 },
     { name: ".net", votes: 0 }
 ];
 
-let voted = [];
-
 function addOption() {
+
     const input = document.getElementById("optionInput");
     const name = input.value.trim();
 
@@ -221,39 +224,50 @@ function addOption() {
     });
 
     input.value = "";
+
     render();
 }
 
 function vote(index) {
-    if (voted.includes(index)) return;
+
+    if (!options[index]) return;
 
     options[index].votes++;
-    voted.push(index);
 
     render();
 }
 
 function deleteOption(index) {
+
     options.splice(index, 1);
-    voted = [];
+
     render();
 }
 
 function render() {
+
     const container = document.getElementById("options");
-    const totalVotes = options.reduce((sum, o) => sum + o.votes, 0);
+
+    const totalVotes = options.reduce(
+        (sum, o) => sum + o.votes,
+        0
+    );
 
     document.getElementById("total").textContent =
         options.length + " Optionen · " + totalVotes + " Stimmen";
 
     if (options.length === 0) {
-        container.innerHTML = '<div class="empty">Noch keine Optionen vorhanden.</div>';
+
+        container.innerHTML =
+            '<div class="empty">Noch keine Optionen vorhanden.</div>';
+
         return;
     }
 
     container.innerHTML = "";
 
     options.forEach((option, index) => {
+
         const percentage = totalVotes
             ? (option.votes / totalVotes) * 100
             : 0;
@@ -271,6 +285,7 @@ function render() {
         const del = document.createElement("button");
         del.className = "delete";
         del.textContent = "✕";
+
         del.onclick = () => deleteOption(index);
 
         top.append(name, del);
@@ -280,30 +295,34 @@ function render() {
 
         const fill = document.createElement("div");
         fill.className = "fill";
+
         fill.style.width = percentage + "%";
 
         bar.appendChild(fill);
 
         const stats = document.createElement("div");
         stats.className = "stats";
-        stats.textContent = option.votes + " Stimmen · " +
+
+        stats.textContent =
+            option.votes + " Stimmen · " +
             percentage.toFixed(1) + "%";
 
         const btn = document.createElement("button");
         btn.className = "vote";
-        btn.textContent = voted.includes(index)
-            ? "Abgestimmt ✓"
-            : "Abstimmen";
 
-        btn.disabled = voted.includes(index);
+        btn.textContent = "+1 Stimme";
+
         btn.onclick = () => vote(index);
 
         div.append(top, bar, stats, btn);
+
         container.appendChild(div);
+
     });
 }
 
 render();
+
 </script>
 
 </body>
